@@ -1,0 +1,156 @@
+gamestart:
+      MOV R12, #msg1    ;;MOVES INPUT MSG IN R0
+      STR R12, .WriteString ;;WRITES MSG 
+      MOV R11, #inputname ;;MOVE ARRAY 
+      STR R11, .ReadString ;; MOVE INPUT INTO ARRAY
+arrayloop:
+      LDRB R10,[R11+R9]
+      STRB R10, [R11+R9]
+      ADD R9,R9,#1
+      CMP R10, #0
+      BNE arrayloop
+numinput:
+      MOV R12, #msg2
+      STR R12, .WriteString
+      LDR R8, .InputNum ;;;;user matchsticks inpt
+      MOV R9,#0         ;INITIALISE INDEX
+main:
+      CMP R8, #10       ;; compares input with 10
+      BLT numinput
+      CMP R8, #100      ;; compares input with 100
+      BGT numinput
+      MOV R2, R8
+      MOV R1, R11
+      PUSH {R0-R3, LR}
+      BL print
+      POP {R0-R3, LR}
+      PUSH {R0,R1,R2,R3,LR}
+      BL msremoved
+      POP {R0,R1,R2,R3,LR}
+      PUSH {R0-R3}
+      BL computer
+      POP {R0-R3}
+      HALT
+msg1: .ASCIZ "Please enter your name\n"
+inputname: .BLOCK 256
+msg2: .ASCIZ "How many matchsticks (10-100)?\n"
+msg3: .ASCIZ "Player 1 is "
+msg4: .ASCIZ "\nMatchsticks: "
+msg5: .ASCIZ "\nPlayer "
+msg6: .ASCIZ ", there are "
+msg7: .ASCIZ "matchsticks remaining\n"
+msg8: .ASCIZ "how many do you want to remove(1-7)?\n"
+msg9: .ASCIZ "\nGame Over"
+msg10: .ASCIZ "\nComputer Player’s turn\n "
+msg11: .ASCIZ " ,YOU WIN!!!"
+msg12: .ASCIZ "\n IT'S A DRAW"
+msg13: .ASCIZ ", YOU LOSE!"
+msg14: .ASCIZ "Computer"
+msg15: .ASCIZ "\nPlay again (y/n) ?\n"
+halt1:
+      HALT
+inputBuffer: .BLOCK 256 ;; Allocate 256 bytes for the input buffer
+msremoved:              ;;matchsticks removed 
+      MOV R0, #msg8     ;;prints the how many do u want to remove msg
+      STR R0, .WriteString
+      LDR R1, .InputNum ;;takes the input
+;;comparison for the 1-7 limit
+      CMP R1, #1 
+      BLT msremoved
+      CMP R1, #7
+      BGT msremoved
+      CMP R1, R2
+      BGT msremoved
+      SUB R2, R2, R1    ;;subtracts the input from the total number of matchsticks
+      MOV R3, R2
+      STR R3, .WriteSignedNum
+      MOV R0, #msg7
+      STR R0, .WriteString
+      CMP R3, #1
+      BEQ playerWins 
+      CMP R3,#0
+      BEQ drawCondition
+      MOV R0, #msg10
+      STR R0, .WriteString
+computer:
+      LDR R1, .Random
+      AND R1, R1, #7
+      CMP R1, #1
+      BLT computer
+      CMP R1, R2
+      BGT computer
+      SUB R2, R2, R1    ;;subtracts the input from the total number of matchsticks
+      MOV R3, R2
+      STR R3, .WriteSignedNum
+      MOV R0, #msg7
+      STR R0, .WriteString
+      CMP R3, #1
+      BEQ computerWins
+      CMP R3, #0
+      BEQ drawCondition
+      BNE msremoved
+      RET
+playerWins:
+      MOV R0, #msg5
+      STR R0, .WriteString
+      STR R11, .WriteString ;;prints name input given by user into console
+      MOV R0, #msg11
+      STR R0, .WriteString
+      MOV R0,#msg5
+      STR R0, .WriteString
+      MOV R0, #msg14
+      STR R0, .WriteString
+      MOV R0, #msg13
+      STR R0, .WriteString
+      B continueGame
+      HALT
+computerWins: 
+      MOV R0,#msg5
+      STR R0, .WriteString
+      MOV R0, #msg14
+      STR R0, .WriteString
+      MOV R0, #msg11
+      STR R0, .WriteString
+      MOV R0, #msg5
+      STR R0, .WriteString
+      STR R1, .WriteString ;;prints name input given by user into console
+      MOV R0, #msg13
+      STR R0, .WriteString
+      B continueGame
+      HALT
+drawCondition:
+      MOV R0, #msg12
+      STR R0, .WriteString
+      B continueGame
+      HALT
+print:
+      MOV R0, #msg3
+      STR R0, .WriteString ;;prints msg into console
+      STR R1, .WriteString ;;prints name input given by user into console
+      MOV R0, #msg4
+      STR R0, .WriteString
+      STR R2, .WriteSignedNum ;;prints number input given into console
+      MOV R0, #msg5
+      STR R0, .WriteString
+      STR R1, .WriteString ;;prints name input given by user into console
+      MOV R0, #msg6
+      STR R0, .WriteString
+      STR R2, .WriteSignedNum
+      MOV R0, #msg7
+      STR R0, .WriteString
+      STR R2, .WriteSignedNum ;;prints number input given into console
+      MOV R0, #msg7
+      STR R0, .WriteString
+      RET
+continueGame:
+      MOV R0, #msg15
+      STR R0, .WriteString ;; Write the message asking for input
+      MOV R1, #inputBuffer ;; Point R0 to the input buffer
+      STR R1, .ReadString ;; Read the input string into the buffer
+      LDRB R5, [R1]     ;; Load the first character of the input into R9
+      CMP R5, #121      ;; Compare with ASCII 'y' (121)
+      BEQ main
+      CMP R5, #110      ;; Compare with ASCII 'n' (110)
+      BEQ halt1
+      B continueGame    ;; If not 'y' or 'n', prompt again
+      HALT

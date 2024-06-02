@@ -1,0 +1,37 @@
+;; stage 1 
+      MOV R0, #msg1     ;;MOVES INPUT MSG IN R0
+      STR R0, .WriteString ;;WRITES MSG 
+      MOV R1, #inputname ;;MOVE ARRAY 
+      STR R1, .ReadString ;; MOVE INPUT INTO ARRAY
+; STR R1, .WriteString
+numinput:
+      MOV R4, #msg2
+      STR R4, .WriteString
+      LDR R4, .InputNum
+;STR R4, .WriteSignedNum
+;STR R1, .ReadString ;; MOVE INPUT INTO ARRAY
+      MOV R3,#0         ;INITIALISE INDEX
+arrayloop:
+      LDRB R2,[R1+R3]
+      STRB R2, [R1+R3]
+      ADD R3,R3,#1
+      CMP R2, #0
+      BNE arrayloop
+;;number input starts from here.
+      CMP R4, #10       ;; compares input with 10
+      BLT numinput
+      CMP R4, #100      ;; compares input with 100
+      BGT numinput
+;;printing after all the inputs are taken.
+      MOV R0, #msg3
+      STR R0, .WriteString ;;prints msg into console 
+      STR R1, .WriteString ;;prints name input given by user into console
+      MOV R0, #msg4
+      STR R0, .WriteString
+      STR R4, .WriteSignedNum ;;prints number input given into console
+      HALT
+msg1: .ASCIZ "Please enter your name\n"
+inputname: .BLOCK 256
+msg2: .ASCIZ "How many matchsticks (10-100)?\n"
+msg3: .ASCIZ "Player 1 is "
+msg4: .ASCIZ "\nMatchsticks: "
